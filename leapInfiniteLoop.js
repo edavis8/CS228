@@ -1,11 +1,12 @@
 var controllerOptions = {};
 var i = 0;
-var x = window.innerWidth/2;
-var y = window.innerHeight/2;
+//var x = window.innerWidth/2;
+//var y = window.innerHeight/2;
 function HandleFrame (frame) {
     if (frame.hands.length == 1) {
     var hand = frame.hands[0];
     HandleHand(hand);
+        
 }  
 }
 function HandleHand (hand) {
@@ -19,11 +20,15 @@ function HandleHand (hand) {
 }
 }
 function HandleFinger (finger) {
-    console.log(finger.tipPosition)    
+    //console.log(finger.tipPosition)
+    var x,y,z;
+    [x,y,z] = finger.tipPosition;
+    circle(x,z,50);
 }
 Leap.loop(controllerOptions, function(frame)
 {
-HandleFrame(frame);
+    clear();
+    HandleFrame(frame);
 }
 )
 
