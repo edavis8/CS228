@@ -19,7 +19,7 @@ function HandleHand (hand) {
 }
 }
 function HandleFinger (finger) {
-    console.log(finger)    
+    console.log(finger.tipPosition)    
 }
 Leap.loop(controllerOptions, function(frame)
 {
