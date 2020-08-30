@@ -2,28 +2,28 @@ var controllerOptions = {};
 var i = 0;
 var x = window.innerWidth/2;
 var y = window.innerHeight/2;
-Leap.loop(controllerOptions, function(frame)
-{
-//clear()
-//circle(x,y,50);
-//var dx = Math.floor(Math.random()*3)-1;
-//var dy = Math.floor(Math.random()*3)-1;
-//x+=dx;
-//y+=dy;
-//console.log(i);
-//i+=1;
-if (frame.hands.length == 1) {
-//    console.log(frame.hands[0]);
+function HandleFrame (frame) {
+    if (frame.hands.length == 1) {
     var hand = frame.hands[0];
+    HandleHand(hand);
+}  
+}
+function HandleHand (hand) {
     var fingers = hand.fingers;
-    //console.log(fingers);
-
-    for (var finger in fingers) {
-        if (finger == 1) {
-            console.log(finger)
+    var i;
+    for (i = 0 ; i < fingers.length; i++) {
+        if (fingers[i].type == 1) {
+            finger = fingers[i];
+            HandleFinger(finger)
         }
 }
-}    
+}
+function HandleFinger (finger) {
+    console.log(finger)    
+}
+Leap.loop(controllerOptions, function(frame)
+{
+HandleFrame(frame);
 }
 )
 
