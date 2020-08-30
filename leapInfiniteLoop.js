@@ -20,10 +20,29 @@ function HandleHand (hand) {
 }
 }
 function HandleFinger (finger) {
-    //console.log(finger.tipPosition)
+    console.log(finger.tipPosition)
     var x,y,z;
     [x,y,z] = finger.tipPosition;
-    circle(x,z,50);
+    var rawXmin, rawXmax, rawYmin, rawYmax;
+    rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
+    if (x < rawXmin) {
+        rawXmin = x;
+    }
+    if (x > rawXmax) {
+        rawXmax = x;
+    }
+    if (y < rawYmin) {
+        rawYmin = y;
+    }
+    if (y > rawYmax) {
+        rawYmax = y;
+    }
+    var x2 = map(x, rawXmin,rawXmax,0,window.innerWidth, true);
+    var y2 = map(y, rawYmin,rawYmax,window.innerHeight,0, true)
+    console.log(innerHeight);
+    circle(x2,y2, 50);
+    console.log(y2);
+    
 }
 Leap.loop(controllerOptions, function(frame)
 {
