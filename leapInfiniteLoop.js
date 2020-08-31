@@ -37,8 +37,20 @@ function HandleFinger (finger) {
     if (y > rawYmax) {
         rawYmax = y;
     }
-    var x2 = map(x, rawXmin,rawXmax,0,window.innerWidth, true);
-    var y2 = map(y, rawYmin,rawYmax,window.innerHeight,0, true)
+    var x2 = map(x, rawXmin,rawXmax,50,window.innerWidth-50);
+//    if (x2 < 50) {
+//        x2 = 50
+//    }
+//    if (x2 > window.innerWidth-50) {
+//        x2 = window.innerWidth-50
+//    }
+    var y2 = map(y, rawYmin,rawYmax,window.innerHeight-50,50, true);
+//    if (y2 < 50) {
+//        y2 =50
+//    }
+//    if (y2 > window.innerHeight-50) {
+//        y2 = window.innerHeight-50
+//    }
     console.log(innerHeight);
     circle(x2,y2, 50);
     console.log(y2);
