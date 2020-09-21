@@ -16,6 +16,12 @@ function HandleFrame (frame) {
       HandleHand(hand);
         
 }
+    if (frame.hands.length == 2) {
+      var hand = frame.hands[0];
+      currentNumHands = 2;
+      HandleHand(hand);
+        
+}
     else {
       currentNumHands = 0;  
     }
@@ -62,9 +68,17 @@ function HandleBone(bone) {
     //console.log([xb,yb]);
     [xt,yt] = TransformCoordinates(xt,yt);
    // console.log([xt,yt]);
-    stroke(1, a);
-    strokeWeight(weight);
-    line(xb,yb,xt,yt);
+    if (currentNumHands==1){
+        stroke(34,139,34, a);
+        strokeWeight(weight);
+        line(xb,yb,xt,yt);
+    }
+    if (currentNumHands == 2) {
+        stroke(139,34,34, a);
+        strokeWeight(weight);
+        line(xb,yb,xt,yt);
+    }
+    
   //  circle(x,y,20);
  //   circle(xx,yy,10);
 }
@@ -88,8 +102,8 @@ function TransformCoordinates(x,y) {
 Leap.loop(controllerOptions, function(frame)
 {
     clear();
-    console.log(previousNumHands);
-    console.log(currentNumHands);
+  //  console.log(previousNumHands);
+//    console.log(currentNumHands);
     HandleFrame(frame);
 }
 )
