@@ -5,9 +5,18 @@ var weight = 3;
 var a = 1;
 var previousNumHands=0;
 var currentNumHands=0;
+var oneFrameOfData = nj.zeros([4,5,6]);
 rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
 //var x = window.innerWidth/2;
 //var y = window.innerHeight/2;
+function RecordData () {
+//    console.log(previousNumHands == 1 & currentNumHands == 2);
+//    console.log(previousNumHands == 1 & currentNumHands == 2);
+    if (previousNumHands == 1 & currentNumHands == 2){
+    background(0,0,0);
+    console.log(oneFrameOfData.toString());
+    }
+}
 function HandleFrame (frame) {
     previousNumHands = currentNumHands;
     if (frame.hands.length == 1) {
@@ -16,7 +25,7 @@ function HandleFrame (frame) {
       HandleHand(hand);
         
 }
-    if (frame.hands.length == 2) {
+    else if (frame.hands.length == 2) {
       var hand = frame.hands[0];
       currentNumHands = 2;
       HandleHand(hand);
@@ -37,7 +46,7 @@ function HandleHand (hand) {
             var finger =fingers[j];
             var bone = finger.bones[i];
  //           console.log(bone);
-            HandleBone(bone);
+            HandleBone(bone, i, j);
             }
     a+=-50;
     weight+= -1    
@@ -57,7 +66,7 @@ function HandleHand (hand) {
     
 //}
 
-function HandleBone(bone) {
+function HandleBone(bone, boneIndex, fingerIndex) {
     var xb,yb,zb;
     var xt,yt,zt;
     [xb,yb,zb] = bone.prevJoint;
@@ -78,7 +87,12 @@ function HandleBone(bone) {
         strokeWeight(weight);
         line(xb,yb,xt,yt);
     }
-    
+    for (i=0 ; i<3; i++ ) {
+        oneFrameOfData.set(boneIndex,fingerIndex,i, [xb,yb,zb][i]);
+    }
+    for (i=0 ; i<3 ; i++) {
+        oneFrameOfData.set(boneIndex,fingerIndex,i+3, [xt,yt,zt][i]);
+    }
   //  circle(x,y,20);
  //   circle(xx,yy,10);
 }
@@ -105,6 +119,7 @@ Leap.loop(controllerOptions, function(frame)
   //  console.log(previousNumHands);
 //    console.log(currentNumHands);
     HandleFrame(frame);
+    RecordData();
 }
 )
 
