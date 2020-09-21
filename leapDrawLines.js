@@ -1,6 +1,8 @@
 var controllerOptions = {};
 var i = 0;
 var rawXmin, rawXmax, rawYmin, rawYmax;
+var weight = 3;
+var a = 1;
 rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
 //var x = window.innerWidth/2;
 //var y = window.innerHeight/2;
@@ -14,19 +16,33 @@ function HandleFrame (frame) {
 function HandleHand (hand) {
     var fingers = hand.fingers;
     var i;
-    for (i = 0 ; i < fingers.length; i++) {
-            finger = fingers[i];
-            HandleFinger(finger)
-       
-}
-}
-function HandleFinger (finger) {
+    var j = 0;
+    a = 250;
+    weight = 3;
     for (i=0;i<4;i++) {
-        bone = finger.bones[i];
-        HandleBone(bone);
+    for (j = 0 ; j < fingers.length; j++) {
+            var finger =fingers[j];
+            var bone = finger.bones[i];
+            console.log(bone);
+            HandleBone(bone);
+            }
+    a+=-50;
+    weight+= -1    
     }
+    }
+
+
+//function HandleFinger (finger) {
+//    weight = 3;
+//    alpha =200;
+//    for (i=0;i<4;i++) {
+//        bone = finger.bones[i];/
+//        HandleBone(bone);
+//        weight += -1;
+//        alpha -= 80;
+//    }
     
-}
+//}
 
 function HandleBone(bone) {
     var xb,yb,zb;
@@ -39,6 +55,8 @@ function HandleBone(bone) {
     //console.log([xb,yb]);
     [xt,yt] = TransformCoordinates(xt,yt);
    // console.log([xt,yt]);
+    stroke(1, a);
+    strokeWeight(weight);
     line(xb,yb,xt,yt);
   //  circle(x,y,20);
  //   circle(xx,yy,10);
@@ -58,7 +76,7 @@ function TransformCoordinates(x,y) {
     }
     x = map(x, rawXmin,rawXmax,50,window.innerWidth-50, true);
     y = map(y, rawYmin,rawYmax,window.innerHeight-50,50, true);
-    return [x,y]
+    return [x,y];
 }
 Leap.loop(controllerOptions, function(frame)
 {
