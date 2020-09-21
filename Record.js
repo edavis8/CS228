@@ -3,15 +3,22 @@ var i = 0;
 var rawXmin, rawXmax, rawYmin, rawYmax;
 var weight = 3;
 var a = 1;
+var previousNumHands=0;
+var currentNumHands=0;
 rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
 //var x = window.innerWidth/2;
 //var y = window.innerHeight/2;
 function HandleFrame (frame) {
+    previousNumHands = currentNumHands;
     if (frame.hands.length == 1) {
-    var hand = frame.hands[0];
-    HandleHand(hand);
+      var hand = frame.hands[0];
+      currentNumHands = 1;
+      HandleHand(hand);
         
-}  
+}
+    else {
+      currentNumHands = 0;  
+    }
 }
 function HandleHand (hand) {
     var fingers = hand.fingers;
@@ -23,7 +30,7 @@ function HandleHand (hand) {
     for (j = 0 ; j < fingers.length; j++) {
             var finger =fingers[j];
             var bone = finger.bones[i];
-            console.log(bone);
+ //           console.log(bone);
             HandleBone(bone);
             }
     a+=-50;
@@ -48,9 +55,9 @@ function HandleBone(bone) {
     var xb,yb,zb;
     var xt,yt,zt;
     [xb,yb,zb] = bone.prevJoint;
-    console.log(bone.prevJoint) ;
+ //   console.log(bone.prevJoint) ;
     [xt,yt,zt] = bone.nextJoint;
-    console.log(bone.nextJoint);
+//    console.log(bone.nextJoint);
     [xb,yb] = TransformCoordinates(xb,yb);
     //console.log([xb,yb]);
     [xt,yt] = TransformCoordinates(xt,yt);
@@ -81,6 +88,8 @@ function TransformCoordinates(x,y) {
 Leap.loop(controllerOptions, function(frame)
 {
     clear();
+    console.log(previousNumHands);
+    console.log(currentNumHands);
     HandleFrame(frame);
 }
 )
