@@ -18,8 +18,8 @@ function RecordData () {
     }
 }
 function HandleFrame (frame) {
-    previousNumHands = currentNumHands;
     var InteractionBox = frame.interactionBox;
+    previousNumHands = currentNumHands;
 //    console.log(frame.interactionBox.depth);
 //    console.log(frame.interactionBox.height);
     if (frame.hands.length == 1) {
@@ -31,7 +31,7 @@ function HandleFrame (frame) {
     else if (frame.hands.length == 2) {
       var hand = frame.hands[0];
       currentNumHands = 2;
-      HandleHand(hand);
+      HandleHand(hand, InteractionBox);
         
 }
     else {
@@ -78,23 +78,25 @@ function HandleBone(bone, boneIndex, fingerIndex, InteractionBox) {
     [xt,yt,zt] = bone.nextJoint;
     normalizedNextJoint= InteractionBox.normalizePoint(bone.nextJoint, clamp = true);
     for (i=0 ; i<3; i++ ) {
-        oneFrameOfData.set(boneIndex,fingerIndex,i, [xb,yb,zb][i]);
+        oneFrameOfData.set(boneIndex,fingerIndex,i, normalizedPrevJoint[i]);
     }
     for (i=0 ; i<3 ; i++) {
-        oneFrameOfData.set(boneIndex,fingerIndex,i+3, [xt,yt,zt][i]);
+        oneFrameOfData.set(boneIndex,fingerIndex,i+3, normalizedNextJoint[i]);
     }
-    var canvasX = window.innerWidth* normalizedPosition[0];
-    var canvasY = window.innerHeight * (1 - normalizedPosition[1]);
+    var canvasXp = window.innerWidth * normalizedPrevJoint[0];
+    var canvasYp = window.innerHeight * (1 - normalizedPrevJoint[1]);
+    var canvasXn = window.innerWidth * normalizedNextJoint[0];
+    var canvasYn = window.innerHeight * (1 - normalizedNextJoint[1]);
 
     if (currentNumHands==1){
         stroke(34,139,34, a);
         strokeWeight(weight);
-        line(xb,yb,xt,yt);
+        line(canvasXp, canvasYp,canvasXn,canvasYn);
     }
     if (currentNumHands == 2) {
         stroke(139,34,34, a);
         strokeWeight(weight);
-        line(xb,yb,xt,yt);
+        line(canvasXp, canvasYp,canvasXn,canvasYn);
     }
 
   //  circle(x,y,20);
