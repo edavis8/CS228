@@ -5,7 +5,9 @@ var frameIndex = 0;
 var currentFrame;
 var flip;
 var trainingCompleted = false;
-var numSamples;
+var numSamplesZero;
+var numSamplesOne;
+var numSamplesTest;
 var numFeatures;
 var irisData;
 var currentFeatures;
@@ -14,48 +16,43 @@ var testingSampleIndex = 0;
 var predictedLabel;
 var features;
 var currentTestingSample;
+
 //numFeatures = irisData.shape[1];
-var predictedClassLabels = nj.zeros([numSamples]);
+var predictedClassLabels = nj.zeros([numSamplesTest]);
   
 
 function GotResults(err,result) {
    //     console.log(testingSampleIndex, currentTestingSample.toString());
-       // console.log(result.label);
+        console.log(result.label);
   //      predictedClassLabels.set(testingSampleIndex, result.label);
         testingSampleIndex += 1;
-        if (testingSampleIndex == numSamples) {
+        if (testingSampleIndex == numSamplesTest) {
             testingSampleIndex =0;
         }
 }
 
 function Train() {
-    numSamples = train0.shape[3];
+    numSamplesZero = train0.shape[3];
+    numSamplesOne = train1.shape[3];
   //  console.log(test);
   //  console.log(train0);
  //   var even;
-    console.log("I am being trained");
-    for (i = 0; i < numSamples; i++) {
+ //   console.log("I am being trained");
+    for (i = 0; i < numSamplesZero; i++) {
         features = train0.pick(null,null,null,i).reshape(1,120);
-        console.log(features.toString());
+ //       console.log(features.toString());
         knnClassifier.addExample(features.tolist(), 0);        
-        
-//        if (i % 2 == 0) {
-  //          even = i;
-  //          currentFeatures = irisData.pick(even).slice([0, 4]);
-    //        currentLabel = irisData.pick(even).get(4);
+        features = train1.pick(null,null,null,i).reshape(1,120);
+  //      console.log(features.toString());
+        knnClassifier.addExample(features.tolist(), 1);  
 
-
-
-
-    //        console.log(currentLabel.toString());
-    //    }
-    }
+}
 }
 
 function Test() {
-    numSamples = test.shape[3];
+    numSamplesTest = test.shape[3];
 //    console.log("I am being tested");
-    for (i = 0; i < numSamples; i++) {
+    for (i = 0; i < numSamplesTest; i++) {
             currentTestingSample = test.pick(null,null,null,i).reshape(1,120);
  //   currentFeatures = irisData.pick(testingSampleIndex).slice([0, 4]);
  //   currentLabel = irisData.pick(testingSampleIndex).get(4);

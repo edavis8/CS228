@@ -6,9 +6,9 @@ var a = 1;
 var previousNumHands=0;
 var currentNumHands=0;
 var currentSample = 0;
-var numSamples = 2 ;
+var numSamples = 100 ;
 var framesOfData = nj.zeros([4,5,6, numSamples]);
-
+nj.config.printThreshold = 1000;
 rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
 
 function RecordData () {
@@ -16,15 +16,16 @@ function RecordData () {
 
     if (previousNumHands == 1 & currentNumHands == 2){
         background(0,0,0);
-    console.log(framesOfData.toString());
+ //   console.log(framesOfData.toString());
    // console.log( framesOfData.pick(null,null,null,1).toString() );
     }
     if (previousNumHands == 2 & currentNumHands == 2){
   //      background(0,0,0);
-        console.log(framesOfData.toString());
+//        console.log(framesOfData.toString());
 //        console.log( framesOfData.pick(null,null,null,1).toString() );
         currentSample+=1
         if (currentSample == numSamples ) {
+            console.log(framesOfData.toString() );
             currentSample=0;
     }
     }
