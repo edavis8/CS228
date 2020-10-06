@@ -5,16 +5,28 @@ var weight = 3;
 var a = 1;
 var previousNumHands=0;
 var currentNumHands=0;
-var oneFrameOfData = nj.zeros([4,5,6]);
+var currentSample = 0;
+var numSamples = 2 ;
+var framesOfData = nj.zeros([4,5,6, numSamples]);
+
 rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
-//var x = window.innerWidth/2;
-//var y = window.innerHeight/2;
+
 function RecordData () {
-//    console.log(previousNumHands == 1 & currentNumHands == 2);
-//    console.log(previousNumHands == 1 & currentNumHands == 2);
+    
+
     if (previousNumHands == 1 & currentNumHands == 2){
-    background(0,0,0);
-    console.log(oneFrameOfData.toString());
+        background(0,0,0);
+    console.log(framesOfData.toString());
+   // console.log( framesOfData.pick(null,null,null,1).toString() );
+    }
+    if (previousNumHands == 2 & currentNumHands == 2){
+  //      background(0,0,0);
+        console.log(framesOfData.toString());
+//        console.log( framesOfData.pick(null,null,null,1).toString() );
+        currentSample+=1
+        if (currentSample == numSamples ) {
+            currentSample=0;
+    }
     }
 }
 function HandleFrame (frame) {
@@ -75,13 +87,14 @@ function HandleBone(bone, boneIndex, fingerIndex, InteractionBox) {
     [xb,yb,zb] = bone.prevJoint;
     normalizedPrevJoint = InteractionBox.normalizePoint(bone.prevJoint, clamp = true);
 
+
     [xt,yt,zt] = bone.nextJoint;
     normalizedNextJoint= InteractionBox.normalizePoint(bone.nextJoint, clamp = true);
     for (i=0 ; i<3; i++ ) {
-        oneFrameOfData.set(boneIndex,fingerIndex,i, normalizedPrevJoint[i]);
+        framesOfData.set(boneIndex,fingerIndex,i,currentSample, normalizedPrevJoint[i]);
     }
     for (i=0 ; i<3 ; i++) {
-        oneFrameOfData.set(boneIndex,fingerIndex,i+3, normalizedNextJoint[i]);
+        framesOfData.set(boneIndex,fingerIndex,i+3,currentSample, normalizedNextJoint[i]);
     }
     var canvasXp = window.innerWidth * normalizedPrevJoint[0];
     var canvasYp = window.innerHeight * (1 - normalizedPrevJoint[1]);
@@ -90,12 +103,12 @@ function HandleBone(bone, boneIndex, fingerIndex, InteractionBox) {
 
     if (currentNumHands==1){
         stroke(34,139,34, a);
-        strokeWeight(weight);
+        strokeWeight(weight*10);
         line(canvasXp, canvasYp,canvasXn,canvasYn);
     }
     if (currentNumHands == 2) {
         stroke(139,34,34, a);
-        strokeWeight(weight);
+        strokeWeight(weight*10);
         line(canvasXp, canvasYp,canvasXn,canvasYn);
     }
 
