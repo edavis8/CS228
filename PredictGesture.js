@@ -27,14 +27,20 @@ var numSamples = 100 ;
 var framesOfData = nj.zeros([4,5,6]);
 nj.config.printThreshold = 1000;
 rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
-
+var m = 0
+var n = 1
 
 //numFeatures = irisData.shape[1];
 //var predictedClassLabels = nj.zeros([numSamplesTest]);
   
 function GotResults(err,result) {
    //     console.log(testingSampleIndex, currentTestingSample.toString());
-        console.log(result.label);
+        var c = result.label;
+        var d = 0;
+        m = ((n-1)*m + (c==d))/n;
+        n+=1
+        console.log(n, m , c);
+        
   //      predictedClassLabels.set(testingSampleIndex, result.label);
         testingSampleIndex += 1;
         if (testingSampleIndex == numSamplesTest) {
@@ -43,6 +49,7 @@ function GotResults(err,result) {
 }
 
 function Train() {
+    console.log(train0.shape);
     numSamplesZero = train0.shape[3];
     numSamplesOne = train1.shape[3];
   //  console.log(test);
@@ -68,10 +75,17 @@ function Test() {
  //           currentTestingSample = //test.pick(null,null,null,i).reshape(1,120);
  //   currentFeatures = irisData.pick(testingSampleIndex).slice([0, 4]);
  //   currentLabel = irisData.pick(testingSampleIndex).get(4);
-            predictedLabel = knnClassifier.classify(framesOfData.tolist(), GotResults);
+    CenterData();
+    features = framesOfData.reshape(1,120);
+    predictedLabel = knnClassifier.classify(features.tolist(), GotResults);
         //    console.log(currentTestingSample.toString() );
             
 //}
+}
+
+function CenterData() {
+    xValues = framesOfData.slice([],[],[0,6,3])
+    console.log(xValues.shape);
 }
 
 function HandleFrame (frame) {
