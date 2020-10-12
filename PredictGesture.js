@@ -24,24 +24,20 @@ var a = 1;
 var previousNumHands=0;
 var currentNumHands=0;
 var numSamples = 100 ;
-var framesOfData = nj.zeros([4,5,6]);
+var oneFrameOfData = nj.zeros([5,4,6]);
 nj.config.printThreshold = 1000;
 rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
 var m = 0
 var n = 1
 
-//numFeatures = irisData.shape[1];
-//var predictedClassLabels = nj.zeros([numSamplesTest]);
-  
 function GotResults(err,result) {
-   //     console.log(testingSampleIndex, currentTestingSample.toString());
+
         var c = result.label;
-        var d = 0;
+        var d = 1;
         m = ((n-1)*m + (c==d))/n;
         n+=1
         console.log(n, m , c);
         
-  //      predictedClassLabels.set(testingSampleIndex, result.label);
         testingSampleIndex += 1;
         if (testingSampleIndex == numSamplesTest) {
             testingSampleIndex =0;
@@ -49,50 +45,77 @@ function GotResults(err,result) {
 }
 
 function Train() {
-    console.log(train0.shape);
     numSamplesZero = train0.shape[3];
     numSamplesOne = train1.shape[3];
-  //  console.log(test);
-  //  console.log(train0);
- //   var even;
- //   console.log("I am being trained");
     for (i = 0; i < numSamplesZero; i++) {
-        features = train0.pick(null,null,null,i).reshape(1,120);
- //       console.log(features.toString());
-        knnClassifier.addExample(features.tolist(), 0);        
-        features = train1.pick(null,null,null,i).reshape(1,120);
-  //      console.log(features.toString());
+        features = train0.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120)
+        knnClassifier.addExample(features.tolist(), 0);  
+        features = train1.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
         knnClassifier.addExample(features.tolist(), 1);  
 
 }
 }
 
 function Test() {
- //   numSamplesTest = test.shape[3];
- //   var predictedClassLabels = nj.zeros([numSamplesTest]);
-//    console.log("I am being tested");
- //   for (i = 0; i < numSamplesTest; i++) {
- //           currentTestingSample = //test.pick(null,null,null,i).reshape(1,120);
- //   currentFeatures = irisData.pick(testingSampleIndex).slice([0, 4]);
- //   currentLabel = irisData.pick(testingSampleIndex).get(4);
-    CenterData();
-    features = framesOfData.reshape(1,120);
+    CenterData(oneFrameOfData);
+    features = oneFrameOfData.reshape(1,120);
     predictedLabel = knnClassifier.classify(features.tolist(), GotResults);
-        //    console.log(currentTestingSample.toString() );
-            
-//}
+
 }
 
-function CenterData() {
-    xValues = framesOfData.slice([],[],[0,6,3])
-    console.log(xValues.shape);
+function CenterData(data) {
+    var xValues = data.slice([],[],[0,6,3]);
+    var currentXMean = xValues.mean();
+    var horizontalShiftX = 0.5 - currentXMean;
+    var yValues = data.slice([],[],[1,6,3]);
+    var currentYMean = yValues.mean();
+    var horizontalShiftY = 0.5 - currentYMean;
+    var zValues = data.slice([],[],[2,6,3]);
+    var currentZMean = zValues.mean();
+    var horizontalShiftZ = 0.5 - currentZMean;
+//    console.log('beforeX', currentXMean);
+//    console.log('beforeY', currentYMean);
+    for (currentRow = 0 ; currentRow < 5 ; currentRow++ ) {
+        for (currentColumn = 0 ; currentColumn <4; currentColumn++) {
+          //  console.log(currentRow, currentColumn);
+           var currentX = oneFrameOfData.get(currentRow,currentColumn,0);
+           var shiftedX = currentX + horizontalShiftX;
+           data.set(currentRow,currentColumn,0, shiftedX); 
+           currentX = data.get(currentRow,currentColumn,3);
+           shiftedX = currentX + horizontalShiftX;
+           data.set(currentRow,currentColumn,3, shiftedX);
+           var currentY = data.get(currentRow,currentColumn,1);
+           var shiftedY = currentY + horizontalShiftY;
+           data.set(currentRow,currentColumn,1, shiftedY); 
+           currentY = data.get(currentRow,currentColumn,4);
+           shiftedY = currentY + horizontalShiftY;
+           data.set(currentRow,currentColumn,4, shiftedY);  
+           var currentZ = data.get(currentRow,currentColumn,2);
+           var shiftedZ = currentZ + horizontalShiftZ;
+           data.set(currentRow,currentColumn,2, shiftedZ); 
+           currentZ = data.get(currentRow,currentColumn,5);
+           shiftedZ = currentZ + horizontalShiftZ;
+           data.set(currentRow,currentColumn,5, shiftedZ);  
+        }
+    }
+    xValues = data.slice([],[],[0,6,3]);
+    currentXMean = xValues.mean(); 
+ //   console.log('afterX', currentXMean);
+    yValues = data.slice([],[],[1,6,3]);
+    currentYMean = yValues.mean(); 
+//    console.log('afterY', currentYMean);
+    zValues = data.slice([],[],[2,6,3]);
+    currentZMean = zValues.mean(); 
+//    console.log('afterZ', currentZMean);
 }
 
 function HandleFrame (frame) {
     var InteractionBox = frame.interactionBox;
     previousNumHands = currentNumHands;
-//    console.log(frame.interactionBox.depth);
-//    console.log(frame.interactionBox.height);
     if (frame.hands.length == 1) {
       var hand = frame.hands[0];
       currentNumHands = 1;
@@ -115,32 +138,22 @@ function HandleHand (hand, InteractionBox) {
     var fingers = hand.fingers;
     var i;
     var j = 0;
-    a = 250;
-    weight = 3;
-    for (i=0;i<4;i++) {
     for (j = 0 ; j < fingers.length; j++) {
+        a = 250;
+        weight = 3;        
+        for (i=0;i<4;i++) {
+ 
             var finger =fingers[j];
             var bone = finger.bones[i];
- //           console.log(bone);
             HandleBone(bone, i, j, InteractionBox);
+            a+=-50;
+            weight+= -1
             }
-    a+=-50;
-    weight+= -1    
+   
     }
     }
 
 
-//function HandleFinger (finger) {
-//    weight = 3;
-//    alpha =200;
-//    for (i=0;i<4;i++) {
-//        bone = finger.bones[i];/
-//        HandleBone(bone);
-//        weight += -1;
-//        alpha -= 80;
-//    }
-    
-//}
 
 function HandleBone(bone, boneIndex, fingerIndex, InteractionBox) {
     var xb,yb,zb;
@@ -152,10 +165,10 @@ function HandleBone(bone, boneIndex, fingerIndex, InteractionBox) {
     [xt,yt,zt] = bone.nextJoint;
     normalizedNextJoint= InteractionBox.normalizePoint(bone.nextJoint, clamp = true);
     for (i=0 ; i<3; i++ ) {
-        framesOfData.set(boneIndex,fingerIndex,i, normalizedPrevJoint[i]);
+        oneFrameOfData.set(fingerIndex,boneIndex,i, normalizedPrevJoint[i]);
     }
     for (i=0 ; i<3 ; i++) {
-        framesOfData.set(boneIndex,fingerIndex,i+3, normalizedNextJoint[i]);
+        oneFrameOfData.set(fingerIndex,boneIndex,i+3, normalizedNextJoint[i]);
     }
     var canvasXp = window.innerWidth * normalizedPrevJoint[0];
     var canvasYp = window.innerHeight * (1 - normalizedPrevJoint[1]);
@@ -178,13 +191,11 @@ function HandleBone(bone, boneIndex, fingerIndex, InteractionBox) {
 }   
 Leap.loop(controllerOptions, function(frame)
 {
-//function draw() {
     clear();
     if (trainingCompleted == false) {
         Train();
         trainingCompleted = true;
     }
- //   }
     HandleFrame(frame);
 
     

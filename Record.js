@@ -16,17 +16,19 @@ function RecordData () {
 
     if (previousNumHands == 1 & currentNumHands == 2){
         background(0,0,0);
+        currentSample+=1;
  //   console.log(framesOfData.toString());
    // console.log( framesOfData.pick(null,null,null,1).toString() );
-        currentSample+=1;
+   //     currentSample+=1;
     }
     if (previousNumHands == 2 & currentNumHands == 2){
   //      background(0,0,0);
 //        console.log(framesOfData.toString());
 //        console.log( framesOfData.pick(null,null,null,1).toString() );
-        currentSample+=1;
-        if (currentSample > numSamples ) {
+            currentSample+=1;
+        if (currentSample > numSamples) {
             console.log(framesOfData.toString() );
+            console.log(framesOfData.shape );
             currentSample=0;
     }
     }
@@ -56,17 +58,19 @@ function HandleHand (hand, InteractionBox) {
     var fingers = hand.fingers;
     var i;
     var j = 0;
+    for (j = 0 ; j < fingers.length; j++) {
     a = 250;
     weight = 3;
-    for (i=0;i<4;i++) {
-    for (j = 0 ; j < fingers.length; j++) {
+        for (i=0;i<4;i++) {
+
             var finger =fingers[j];
             var bone = finger.bones[i];
  //           console.log(bone);
             HandleBone(bone, i, j, InteractionBox);
+            a+=-50;
+            weight+= -1 
             }
-    a+=-50;
-    weight+= -1    
+   
     }
     }
 
@@ -93,10 +97,10 @@ function HandleBone(bone, boneIndex, fingerIndex, InteractionBox) {
     [xt,yt,zt] = bone.nextJoint;
     normalizedNextJoint= InteractionBox.normalizePoint(bone.nextJoint, clamp = true);
     for (i=0 ; i<3; i++ ) {
-        framesOfData.set(boneIndex,fingerIndex,i,currentSample, normalizedPrevJoint[i]);
+        framesOfData.set(fingerIndex,boneIndex,i,currentSample, normalizedPrevJoint[i]);
     }
     for (i=0 ; i<3 ; i++) {
-        framesOfData.set(boneIndex,fingerIndex,i+3,currentSample, normalizedNextJoint[i]);
+        framesOfData.set(fingerIndex,boneIndex,i+3,currentSample, normalizedNextJoint[i]);
     }
     var canvasXp = window.innerWidth * normalizedPrevJoint[0];
     var canvasYp = window.innerHeight * (1 - normalizedPrevJoint[1]);
