@@ -2,26 +2,18 @@ const knnClassifier = ml5.KNNClassifier();
 controllerOptions= {};
 var weight = 3;
 var a = 1;
-var frameIndex = 0;
-var currentFrame;
-var flip;
 var trainingCompleted = false;
 var numSamplesZero;
 var numSamplesOne;
 var numSamplesTest;
-var numFeatures;
-var irisData;
-var currentFeatures;
-var currentLabel;
 var testingSampleIndex = 0;
 var predictedLabel;
 var features;
 var currentTestingSample;
 var i = 0;
 var rawXmin, rawXmax, rawYmin, rawYmax;
-var weight = 3;
-var a = 1;
 var previousNumHands=0;
+var features;
 var currentNumHands=0;
 var numSamples = 100 ;
 var oneFrameOfData = nj.zeros([5,4,6]);
@@ -33,10 +25,10 @@ var n = 1
 function GotResults(err,result) {
 
         var c = result.label;
-        var d = 1;
+        var d = 9;
         m = ((n-1)*m + (c==d))/n;
         n+=1
-        console.log(n, m , c);
+        console.log(c);
         
         testingSampleIndex += 1;
         if (testingSampleIndex == numSamplesTest) {
@@ -48,16 +40,131 @@ function Train() {
     numSamplesZero = train0.shape[3];
     numSamplesOne = train1.shape[3];
     for (i = 0; i < numSamplesZero; i++) {
+        console.log('Training step'+i.toString());
         features = train0.pick(null,null,null,i);
         CenterData(features);
-        features = features.reshape(1,120)
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 0);
+ 
+        features = train0Bongard.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
         knnClassifier.addExample(features.tolist(), 0);  
+    
+        features = train1Bongard.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 1);  
+       
         features = train1.pick(null,null,null,i);
         CenterData(features);
         features = features.reshape(1,120);
         knnClassifier.addExample(features.tolist(), 1);  
 
+        features = train1Li.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 1);  
+
+        features = train2.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 2);
+
+        features = train2Obrien.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 2);
+       
+        features = train2Neff.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 2);
+        
+        features = train2Jing.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 2);
+        
+        features = train2Jimmo.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 2);
+
+        features = train2Bongard.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 2);
+        
+        features = train3.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 3);
+        
+        features = train3Li.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 3);
+        
+        features = train4.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 4);
+
+        features = train5Bert.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 5);
+        
+        features = train5Shi.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 5);
+        
+        
+        features = train5.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 5);
+        
+        features = train6.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 6);        
+
+        features = train7.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 7); 
+        
+        features = train8.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 8);         
+        
+        features = train8Matthews.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 8);           
+        
+        features = train9.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 9); 
+        
+        features = train9He.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 9); 
+        
+        features = train9Bongard.pick(null,null,null,i);
+        CenterData(features);
+        features = features.reshape(1,120);
+        knnClassifier.addExample(features.tolist(), 9); 
+        
+        
 }
+console.log('done training');
 }
 
 function Test() {
@@ -82,18 +189,20 @@ function CenterData(data) {
     for (currentRow = 0 ; currentRow < 5 ; currentRow++ ) {
         for (currentColumn = 0 ; currentColumn <4; currentColumn++) {
           //  console.log(currentRow, currentColumn);
-           var currentX = oneFrameOfData.get(currentRow,currentColumn,0);
+           var currentX = data.get(currentRow,currentColumn,0);
            var shiftedX = currentX + horizontalShiftX;
            data.set(currentRow,currentColumn,0, shiftedX); 
            currentX = data.get(currentRow,currentColumn,3);
            shiftedX = currentX + horizontalShiftX;
            data.set(currentRow,currentColumn,3, shiftedX);
+           
            var currentY = data.get(currentRow,currentColumn,1);
            var shiftedY = currentY + horizontalShiftY;
            data.set(currentRow,currentColumn,1, shiftedY); 
            currentY = data.get(currentRow,currentColumn,4);
            shiftedY = currentY + horizontalShiftY;
            data.set(currentRow,currentColumn,4, shiftedY);  
+         
            var currentZ = data.get(currentRow,currentColumn,2);
            var shiftedZ = currentZ + horizontalShiftZ;
            data.set(currentRow,currentColumn,2, shiftedZ); 
@@ -196,6 +305,7 @@ Leap.loop(controllerOptions, function(frame)
         Train();
         trainingCompleted = true;
     }
+//    console.log('done training');
     HandleFrame(frame);
 
     
