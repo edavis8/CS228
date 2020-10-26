@@ -21,6 +21,12 @@ nj.config.printThreshold = 1000;
 rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
 var m = 0
 var n = 1
+var programState = 0;
+var farRight = false; var farLeft = false; var farForward = false;
+var farBack = false; farHigh = false;
+var centeredXmean;
+var centeredYmean;
+var centeredZmean;
 
 function GotResults(err,result) {
 
@@ -184,11 +190,8 @@ function CenterData(data) {
     var zValues = data.slice([],[],[2,6,3]);
     var currentZMean = zValues.mean();
     var horizontalShiftZ = 0.5 - currentZMean;
-//    console.log('beforeX', currentXMean);
-//    console.log('beforeY', currentYMean);
     for (currentRow = 0 ; currentRow < 5 ; currentRow++ ) {
         for (currentColumn = 0 ; currentColumn <4; currentColumn++) {
-          //  console.log(currentRow, currentColumn);
            var currentX = data.get(currentRow,currentColumn,0);
            var shiftedX = currentX + horizontalShiftX;
            data.set(currentRow,currentColumn,0, shiftedX); 
@@ -212,14 +215,11 @@ function CenterData(data) {
         }
     }
     xValues = data.slice([],[],[0,6,3]);
-    currentXMean = xValues.mean(); 
- //   console.log('afterX', currentXMean);
+    centeredXMean = xValues.mean();
     yValues = data.slice([],[],[1,6,3]);
-    currentYMean = yValues.mean(); 
-//    console.log('afterY', currentYMean);
+    centeredYMean = yValues.mean(); 
     zValues = data.slice([],[],[2,6,3]);
-    currentZMean = zValues.mean(); 
-//    console.log('afterZ', currentZMean);
+    centeredZMean = zValues.mean(); 
 }
 
 function HandleFrame (frame) {
@@ -229,8 +229,7 @@ function HandleFrame (frame) {
       var hand = frame.hands[0];
       currentNumHands = 1;
       HandleHand(hand, InteractionBox);
-      currentTestingSample
-      Test();
+ //     Test();
         
 }
     else if (frame.hands.length == 2) {
@@ -262,8 +261,6 @@ function HandleHand (hand, InteractionBox) {
     }
     }
 
-
-
 function HandleBone(bone, boneIndex, fingerIndex, InteractionBox) {
     var xb,yb,zb;
     var xt,yt,zt;
@@ -279,34 +276,92 @@ function HandleBone(bone, boneIndex, fingerIndex, InteractionBox) {
     for (i=0 ; i<3 ; i++) {
         oneFrameOfData.set(fingerIndex,boneIndex,i+3, normalizedNextJoint[i]);
     }
-    var canvasXp = window.innerWidth * normalizedPrevJoint[0];
-    var canvasYp = window.innerHeight * (1 - normalizedPrevJoint[1]);
-    var canvasXn = window.innerWidth * normalizedNextJoint[0];
-    var canvasYn = window.innerHeight * (1 - normalizedNextJoint[1]);
+    var canvasXp = window.innerWidth/2 * normalizedPrevJoint[0];
+    var canvasYp = window.innerHeight/2 * (1 - normalizedPrevJoint[1]);
+    var canvasXn = window.innerWidth/2 * normalizedNextJoint[0];
+    var canvasYn = window.innerHeight/2 * (1 - normalizedNextJoint[1]);
 
-    if (currentNumHands==1){
+    if (currentNumHands>=1){
         stroke(50,50,50, a);
         strokeWeight(weight*10);
         line(canvasXp, canvasYp,canvasXn,canvasYn);
     }
-//    if (currentNumHands == 2) {
-//        stroke(139,34,34, a);
-//        strokeWeight(weight*10);
-//        line(canvasXp, canvasYp,canvasXn,canvasYn);
-//    }
-
-  //  circle(x,y,20);
- //   circle(xx,yy,10);
 }   
+
+function DetermineState(frame) {
+    if (frame.hands.length == 1) {
+        programState = 1;
+ //     Test();
+}
+    else if (frame.hands.length == 0) {
+        programState = 0 ;
+}
+}
+
+function HandleState0(frame) {
+//    if (trainingCompleted == false) {
+//        Train();
+//        trainingCompleted = true;
+//    }
+ //   DrawImageToHelpUserPutTheirHandOverTheDevice();
+    guide.resize(window.innerWidth/2,window.innerHeight/2);
+    image(guide,0,0);
+}
+
+
+function HandleState1(frame) {
+        HandleFrame(frame);
+}
+
+
+function HandIsUncentered(){
+    if (centeredXmean<0.25) {
+    tooLeft.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooLeft,window.innerwidth/2,0);        
+    }
+    else if (centeredXmean>0.75){
+    tooRight.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooRight,window.innerwidth/2,0);        
+    }       
+    else if (centeredYmean<0.25) {
+    tooFar.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooFar,window.innerwidth/2,0);        
+           
+    }
+    else if (centeredYmean>0.75) {
+    tooClose.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooClose,window.innerwidth/2,0);        
+            
+    }
+    else if (centeredZmean>0.75) {
+    tooHigh.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooHigh,window.innerwidth/2,0);        
+
+        
+    }
+    
+}
+console.log('yes');
 Leap.loop(controllerOptions, function(frame)
 {
     clear();
-    if (trainingCompleted == false) {
-        Train();
-        trainingCompleted = true;
+    console.log('yes');
+//    image(img,0,0);
+//    console.log('printed');
+    DetermineState(frame);
+    console.log(programState);
+    if (programState == 0){
+        HandleState0(frame);
     }
-//    console.log('done training');
-    HandleFrame(frame);
+    else if (programState == 1){
+        HandleState1(frame);
+    }
+    
+//    if (trainingCompleted == false) {
+//        Train();
+//        trainingCompleted = true;
+//    }
+//    HandleFrame(frame);
 
     
 
