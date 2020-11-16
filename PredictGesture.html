@@ -1,5 +1,5 @@
 <html>
-    <head>
+<head>
     <script src="http://js.leapmotion.com/leap-0.6.3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.1.9/lib/p5.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/nicolaspanel/numjs@0.15.1/dist/numjs.min.js"></script>
@@ -16,24 +16,160 @@
     <script src="train2Neff.js"></script>
     <script src="train2Jimmo.js"></script>
     <script src="train2Bongard.js"></script>
-    <script src="train2Jing.js"></script>        
+    <script src="train2Jing.js"></script>
     <script src="train3Shi.js"></script>
     <script src="train3Li.js"></script>
     <script src="train4Bongard.js"></script>
     <script src="train5OConnor.js"></script>
     <script src="train5Bertschinger.js"></script>
     <script src="train5Shi.js"></script>
-    <script src="train6Potts.js"></script>    
-    <script src="train7Bongard.js"></script>   
-    <script src="train8Goldman.js"></script> 
+    <script src="train6Potts.js"></script>
+    <script src="train7Bongard.js"></script>
+    <script src="train8Goldman.js"></script>
     <script src="train8Matthews.js"></script>
-    <script src="train9JClark.js"></script> 
+    <script src="train9JClark.js"></script>
     <script src="train9He.js"></script>
     <script src="train9Bongard.js"></script>
-    </head>
-    <body>
-        <main>
-       Hello World!
-        </main>
-    </body>
+</head>
+<body>
+
+    <main>
+
+               Hello World!
+                
+        <form id="myform">
+            <input id="username" type="text" name="username" placeholder="name">
+            <button onclick="return SignIn();" type="submit">Sign in</button>
+        </form>
+    </main>
+    <ul id="users" style="color:white">
+        <li id="ethan_name">ethan</li>
+        <li id="ethan_signins">2</li>
+        <li id="ethan_0_num">0</li>
+        <li id="ethan_0_attempts">attempts</li>
+        <li id="ethan_0_accuracy">accuracy</li>
+        <li id="ethan_1_num">1</li>
+        <li id="ethan_1_attempts">attempts</li>
+        <li id="ethan_1_accuracy">accuracy</li>
+        <li id="ethan_2_num">2</li>
+        <li id="ethan_2_attempts">attempts</li>
+        <li id="ethan_2_accuracy">accuracy</li>
+        <li id="ethan_3_num">3</li>
+        <li id="ethan_3_attempts">attempts</li>
+        <li id="ethan_3_accuracy">accuracy</li>
+        <li id="ethan_4_num">4</li>
+        <li id="ethan_4_attempts">attempts</li>
+        <li id="ethan_4_accuracy">accuracy</li>
+        <li id="ethan_5_num">5</li>
+        <li id="ethan_5_attempts">attempts</li>
+        <li id="ethan_5_accuracy">accuracy</li>
+        <li id="ethan_6_num">6</li>
+        <li id="ethan_6_attempts">attempts</li>
+        <li id="ethan_6_accuracy">accuracy</li>
+        <li id="ethan_7_num">7</li>
+        <li id="ethan_7_attempts">attempts</li>
+        <li id="ethan_7_accuracy">accuracy</li>
+        <li id="ethan_8_num">8</li>
+        <li id="ethan_8_attempts">attempts</li>
+        <li id="ethan_8_accuracy">accuracy</li>
+        <li id="ethan_9_num">9</li>
+        <li id="ethan_9_attempts">attempts</li>
+        <li id="ethan_9_accuracy">accuracy</li>
+        <li id="ethan_0_num">0</li>
+        <li id="ethan_0_attempts">attempts</li>
+        <li id="ethan_0_accuracy">accuracy</li>
+        <li id="ethan_1_num">1</li>
+        <li id="ethan_1_attempts">attempts</li>
+        <li id="ethan_1_accuracy">accuracy</li>
+        <li id="ethan_2_num">2</li>
+        <li id="ethan_2_attempts">attempts</li>
+        <li id="ethan_2_accuracy">accuracy</li>
+        <li id="ethan_3_num">3</li>
+        <li id="ethan_3_attempts">attempts</li>
+        <li id="ethan_3_accuracy">accuracy</li>
+        <li id="ethan_4_num">4</li>
+        <li id="ethan_4_attempts">attempts</li>
+        <li id="ethan_4_accuracy">accuracy</li>
+        <li id="ethan_5_num">5</li>
+        <li id="ethan_5_attempts">attempts</li>
+        <li id="ethan_5_accuracy">accuracy</li>
+        <li id="ethan_6_num">6</li>
+        <li id="ethan_6_attempts">attempts</li>
+        <li id="ethan_6_accuracy">accuracy</li>
+        <li id="ethan_7_num">7</li>
+        <li id="ethan_7_attempts">attempts</li>
+        <li id="ethan_7_accuracy">accuracy</li>
+        <li id="ethan_8_num">8</li>
+        <li id="ethan_8_attempts">attempts</li>
+        <li id="ethan_8_accuracy">accuracy</li>
+        <li id="ethan_9_num">9</li>
+        <li id="ethan_9_attempts">attempts</li>
+        <li id="ethan_9_accuracy">accuracy</li>
+        <li id="jake_name">jake</li>
+        <li id="jake_signins">1</li>
+        <li id="jake_0_num">0</li>
+        <li id="jake_0_attempts">attempts</li>
+        <li id="jake_0_accuracy">accuracy</li>
+        <li id="jake_1_num">1</li>
+        <li id="jake_1_attempts">attempts</li>
+        <li id="jake_1_accuracy">accuracy</li>
+        <li id="jake_2_num">2</li>
+        <li id="jake_2_attempts">attempts</li>
+        <li id="jake_2_accuracy">accuracy</li>
+        <li id="jake_3_num">3</li>
+        <li id="jake_3_attempts">attempts</li>
+        <li id="jake_3_accuracy">accuracy</li>
+        <li id="jake_4_num">4</li>
+        <li id="jake_4_attempts">attempts</li>
+        <li id="jake_4_accuracy">accuracy</li>
+        <li id="jake_5_num">5</li>
+        <li id="jake_5_attempts">attempts</li>
+        <li id="jake_5_accuracy">accuracy</li>
+        <li id="jake_6_num">6</li>
+        <li id="jake_6_attempts">attempts</li>
+        <li id="jake_6_accuracy">accuracy</li>
+        <li id="jake_7_num">7</li>
+        <li id="jake_7_attempts">attempts</li>
+        <li id="jake_7_accuracy">accuracy</li>
+        <li id="jake_8_num">8</li>
+        <li id="jake_8_attempts">attempts</li>
+        <li id="jake_8_accuracy">accuracy</li>
+        <li id="jake_9_num">9</li>
+        <li id="jake_9_attempts">attempts</li>
+        <li id="jake_9_accuracy">accuracy</li>
+        <li id="carl_name">carl</li>
+        <li id="carl_signins">1</li>
+        <li id="carl_0_num">0</li>
+        <li id="carl_0_attempts">attempts</li>
+        <li id="carl_0_accuracy">accuracy</li>
+        <li id="carl_1_num">1</li>
+        <li id="carl_1_attempts">attempts</li>
+        <li id="carl_1_accuracy">accuracy</li>
+        <li id="carl_2_num">2</li>
+        <li id="carl_2_attempts">attempts</li>
+        <li id="carl_2_accuracy">accuracy</li>
+        <li id="carl_3_num">3</li>
+        <li id="carl_3_attempts">attempts</li>
+        <li id="carl_3_accuracy">accuracy</li>
+        <li id="carl_4_num">4</li>
+        <li id="carl_4_attempts">attempts</li>
+        <li id="carl_4_accuracy">accuracy</li>
+        <li id="carl_5_num">5</li>
+        <li id="carl_5_attempts">attempts</li>
+        <li id="carl_5_accuracy">accuracy</li>
+        <li id="carl_6_num">6</li>
+        <li id="carl_6_attempts">attempts</li>
+        <li id="carl_6_accuracy">accuracy</li>
+        <li id="carl_7_num">7</li>
+        <li id="carl_7_attempts">attempts</li>
+        <li id="carl_7_accuracy">accuracy</li>
+        <li id="carl_8_num">8</li>
+        <li id="carl_8_attempts">attempts</li>
+        <li id="carl_8_accuracy">accuracy</li>
+        <li id="carl_9_num">9</li>
+        <li id="carl_9_attempts">attempts</li>
+        <li id="carl_9_accuracy">accuracy</li>
+    </ul>
+
+</body>
 </html>

@@ -17,24 +17,30 @@ var features;
 var currentNumHands=0;
 var numSamples = 100 ;
 var oneFrameOfData = nj.zeros([5,4,6]);
+var digitToShow = 0;
 nj.config.printThreshold = 1000;
 rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
-var m = 0
-var n = 1
+var m = 0.4;
+var n = 1;
+var goal = 0.6;
 var programState = 0;
 var farRight = false; var farLeft = false; var farForward = false;
 var farBack = false; farHigh = false;
-var centeredXmean;
-var centeredYmean;
-var centeredZmean;
+var centeredXMean;
+var centeredYMean;
+var centeredZMean;
+var one_score =0; var two_score=0; var three_score=0; var four_score=0; var five_score; var six_score; var seven_score; var eight_score; var nine_score;
+var scores = [];
 
+
+var timeSinceLastDigitChange = new Date();
 function GotResults(err,result) {
 
         var c = result.label;
-        var d = 9;
+        var d = digitToShow;
         m = ((n-1)*m + (c==d))/n;
         n+=1
-        console.log(c);
+        console.log(d, c, m);
         
         testingSampleIndex += 1;
         if (testingSampleIndex == numSamplesTest) {
@@ -174,8 +180,9 @@ console.log('done training');
 }
 
 function Test() {
-    CenterData(oneFrameOfData);
-    features = oneFrameOfData.reshape(1,120);
+    dataCopy = oneFrameOfData.clone();
+    CenterData(dataCopy);
+    features = dataCopy.reshape(1,120);
     predictedLabel = knnClassifier.classify(features.tolist(), GotResults);
 
 }
@@ -229,7 +236,6 @@ function HandleFrame (frame) {
       var hand = frame.hands[0];
       currentNumHands = 1;
       HandleHand(hand, InteractionBox);
- //     Test();
         
 }
     else if (frame.hands.length == 2) {
@@ -282,27 +288,25 @@ function HandleBone(bone, boneIndex, fingerIndex, InteractionBox) {
     var canvasYn = window.innerHeight/2 * (1 - normalizedNextJoint[1]);
 
     if (currentNumHands>=1){
-        stroke(50,50,50, a);
+        stroke(50+155*(1-m),50+155*m,50, a);
         strokeWeight(weight*10);
         line(canvasXp, canvasYp,canvasXn,canvasYn);
     }
 }   
 
 function DetermineState(frame) {
-    if (frame.hands.length == 1) {
+    if (frame.hands.length == 1 && HandIsUncentered()) {
         programState = 1;
- //     Test();
 }
     else if (frame.hands.length == 0) {
         programState = 0 ;
 }
+    else if (frame.hands.length == 1){
+        programState = 2;
+    }
 }
 
 function HandleState0(frame) {
-//    if (trainingCompleted == false) {
-//        Train();
-//        trainingCompleted = true;
-//    }
  //   DrawImageToHelpUserPutTheirHandOverTheDevice();
     guide.resize(window.innerWidth/2,window.innerHeight/2);
     image(guide,0,0);
@@ -311,56 +315,241 @@ function HandleState0(frame) {
 
 function HandleState1(frame) {
         HandleFrame(frame);
+        HandIsUncentered();
+    if (centeredXMean<0.25) {
+        tooLeft.resize(window.innerWidth/2,window.innerHeight/2);
+        image(tooLeft,window.innerWidth/2,0);
+    }
+    else if (centeredXMean>0.75){
+    tooRight.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooRight,window.innerWidth/2,0); 
+    }       
+    else if (centeredZMean<0.25) {
+    tooFar.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooFar,window.innerWidth/2,0); 
+    }
+    else if (centeredZMean>0.75) {
+    tooClose.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooClose,window.innerWidth/2,0);        
+    }
+    else if (centeredYMean>0.75) {
+    tooHigh.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooHigh,window.innerWidth/2,0);              
+    }
 }
 
+function DrawLowerRightPanel() {   
+    digit_image = imgs[digitToShow];
+    digit_image.resize(window.innerWidth/2,window.innerHeight/2);
+    image(digit_image, window.innerWidth/2, window.innerHeight/2);    
+}
 
-function HandIsUncentered(){
-    if (centeredXmean<0.25) {
-    tooLeft.resize(window.innerWidth/2,window.innerHeight/2);
-    image(tooLeft,window.innerwidth/2,0);        
-    }
-    else if (centeredXmean>0.75){
-    tooRight.resize(window.innerWidth/2,window.innerHeight/2);
-    image(tooRight,window.innerwidth/2,0);        
-    }       
-    else if (centeredYmean<0.25) {
-    tooFar.resize(window.innerWidth/2,window.innerHeight/2);
-    image(tooFar,window.innerwidth/2,0);        
-           
-    }
-    else if (centeredYmean>0.75) {
-    tooClose.resize(window.innerWidth/2,window.innerHeight/2);
-    image(tooClose,window.innerwidth/2,0);        
-            
-    }
-    else if (centeredZmean>0.75) {
-    tooHigh.resize(window.innerWidth/2,window.innerHeight/2);
-    image(tooHigh,window.innerwidth/2,0);        
-
-        
+function DetermineSwitchDigits() {
+    if (TimeToSwitchDigits()) {
+        SwitchDigits();
+        timeSinceLastDigitChange = new Date();
     }
     
 }
-console.log('yes');
+
+function TimeToSwitchDigits() {
+    var currentTime = new Date();
+    var diffInMilliseconds = currentTime -timeSinceLastDigitChange ;
+    var diffInSeconds = diffInMilliseconds/1000;
+    if (diffInSeconds > 3) {
+        return true;
+    }
+    else {
+        return false;  
+    }
+    
+}
+
+function SwitchDigits() {        
+    if (DetermineNextDigit() && digitToShow<=9) {
+        digitToShow +=1;
+        m = 0.4;
+        n = 1;
+    }
+//    else if (DetermineNextLevel() && digitToShow==9) {
+//        DetermineNextLevel();
+//    }
+    
+}
+
+function HandleState2(frame) {
+    if (level ==0) {
+        HandleLevel0();
+    }
+    else if (level == 1) {
+        HandleLevel1();
+    }
+    else if (level == 2) {
+        HandleLevel2();
+    }
+    HandleFrame(frame);
+    Test();
+    DrawLowerRightPanel();
+    DetermineSwitchDigits();
+}
+
+function HandIsUncentered(){
+    xValues = oneFrameOfData.slice([],[],[0,6,3]);
+//    console.log(xValues.mean());
+    centeredXMean = xValues.mean();
+ //   console.log(centeredXMean);
+    yValues = oneFrameOfData.slice([],[],[1,6,3]);
+    centeredYMean = yValues.mean(); 
+    zValues = oneFrameOfData.slice([],[],[2,6,3]);
+    centeredZMean = zValues.mean(); 
+//    console.log(centeredXMean);
+    if (centeredXMean<0.25) {
+        return true
+    }
+    else if (centeredXMean>0.75){
+        return true
+    }       
+    else if (centeredZMean<0.25) {
+        return true
+           
+    }
+    else if (centeredZMean>0.75) {       
+        return true
+    }
+    else if (centeredYMean>0.75) {      
+        return true
+        
+    }
+    else {
+        return false
+    }
+    
+}
+
+function IsNewUser(username, list) {
+    var usernameFound = false;
+    var users = list.children;
+    for (i=0 ; i<users.length; i++){
+//        console.log(username);
+//        console.log(users[i].innerHTML)
+        if (username == users[i].innerHTML) {
+            usernameFound = true;
+        }
+    }
+    console.log(usernameFound ==false);
+    return usernameFound == false;
+}
+
+function CreateNewUser(username, list) {
+    var item = document.createElement('li');
+    item.innerHTML = String(username);
+    item.id = String(username)+'_name'
+    list.appendChild(item); 
+
+//        console.log(list);
+    var users = list.children;
+//        console.log(users);    
+}
+
+function CreateSignInItem(username, list){        
+    item = document.createElement('li');
+    item.innerHTML = 1;
+    item.id = String(username)+'_signins'
+    list.appendChild(item); 
+
+}
+
+function SignIn() {
+    var username = document.getElementById('username').value;
+//    console.log(username);
+    var list = document.getElementById('users');
+    if (IsNewUser(username, list)) {
+        CreateNewUser(username, list);
+        CreateSignInItem(username,list);
+    }
+    else {
+        ID = String(username + "_signins");
+        listItem = document.getElementById(ID);
+        listItem.innerHTML = parseInt(listItem.innerHTML)+1     
+    }
+    for (i=0;i<10;i++) {
+        item = document.createElement('li');
+        item.innerHTML = String(i);
+        item.id = String(username) +'_' +String(i)+'_num';
+        list.appendChild(item); 
+        
+        item = document.createElement('li');
+        item.innerHTML = 'attempts';
+        item.id = String(username) + '_' + String(i)+'_attempts';
+        list.appendChild(item);
+        
+        item = document.createElement('li');
+        item.innerHTML = 'accuracy';
+        item.id = String(username) + '_' +String(i)+'_accuracy';
+        list.appendChild(item); 
+    }
+    console.log(list.innerHTML);
+    return false;
+
+}
+
+
+function DetermineNextDigit() {
+    var performance = m;
+    if (performance > goal) {
+        return true
+    }
+    if (performance < 0.3) {
+        n = 1;
+    }
+    else {
+        return false
+    }
+}
+
+function DetermineNextLevel() {
+    
+}
+
+
+function HandleLevel1() {
+    
+}
+
+function HandleLevel2() {
+    
+}
+
+function HandleLevel3() {
+    
+}
+//function DeterminePrevLevel() {
+    
+//}
+
+
+console.log(programState);
 Leap.loop(controllerOptions, function(frame)
 {
     clear();
-    console.log('yes');
-//    image(img,0,0);
-//    console.log('printed');
+    if (trainingCompleted == false) {
+        Train();
+        trainingCompleted = true;
+    }
     DetermineState(frame);
-    console.log(programState);
     if (programState == 0){
         HandleState0(frame);
     }
     else if (programState == 1){
         HandleState1(frame);
     }
-    
+    else if (programState ==2 ) {
+        HandleState2(frame);
+    }
 //    if (trainingCompleted == false) {
 //        Train();
 //        trainingCompleted = true;
-//    }
+//    }    
 //    HandleFrame(frame);
 
     
