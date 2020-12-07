@@ -48,6 +48,8 @@ function HandleFrame (frame) {
       var hand = frame.hands[0];
       currentNumHands = 2;
       HandleHand(hand, InteractionBox);
+      var hand2 = frame.hands[1];
+      HandleHand(hand2, InteractionBox);
         
 }
     else {

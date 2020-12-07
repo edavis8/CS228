@@ -17,11 +17,12 @@ var features;
 var currentNumHands=0;
 var numSamples = 100 ;
 var oneFrameOfData = nj.zeros([5,4,6]);
-var digitToShow = 0;
+var digitToShow = 6;
 nj.config.printThreshold = 1000;
 rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
-var m = 0.3;
+var m = 0;
 var n = 2;
+d = digitToShow;
 var goal = 0.5;
 var programState = 0;
 var farRight = false; var farLeft = false; var farForward = false;
@@ -29,12 +30,41 @@ var farBack = false; farHigh = false;
 var centeredXMean;
 var centeredYMean;
 var centeredZMean;
-var one_score =0; var two_score=0; var three_score=0; var four_score=0; var five_score; var six_score; var seven_score; var eight_score; var nine_score;
+var username;
+//var one_score =0; var two_score=0; var three_score=0; var four_score=0; var five_score; var six_score; var seven_score; var eight_score; var nine_score;
 var scores = [];
 for (i=0;i<10;i++) {
     scores[i] =3;
 }
-var level =2;
+
+
+var accuracyCount = [];
+for (i=0;i<10;i++) {
+    accuracyCount[i] =0;
+}
+
+var correct = [];
+for (i=0;i<10;i++) {
+    correct[i] =3;
+}
+
+
+var attempts = [];
+for (i=0;i<10;i++) {
+     attempts[i] =6;
+}
+
+var accuracyList = [];
+for (i=0;i<10;i++) {
+    accuracyList[i]=correct[i]/attempts[i];
+}
+
+
+
+
+
+
+var level =3;
 var imageTime = 0;
 var switchTime = 3;
 var levelUp = false;
@@ -43,10 +73,21 @@ var timeSinceLastDigitChange = new Date();
 var diffInSeconds=0;
 var diffInMilliseconds;
 var currentTime;
-function GotResults(err,result) {
+var c;
+var prevDataList;
+var myBarData = [];
+for (i=0;i<10;i++) {
+    myBarData[i] = Math.random();
+}
+var barData;
+var myPrevData = Array.from(Array(10), () => 0);;
+var xNums;
 
-        var c = result.label;
-        var d = digitToShow;
+var pauseClick = false;
+
+function GotResults(err,result) {
+        c = result.label;
+        d = digitToShow;
         m = ((n-1)*m + (c==d))/n;
         n+=1
      //   console.log(d, c, m);
@@ -61,7 +102,7 @@ function Train() {
     numSamplesZero = train0.shape[3];
     numSamplesOne = train1.shape[3];
     for (i = 0; i < numSamplesZero; i++) {
-//        console.log('Training step'+i.toString());
+        console.log('Training step'+i.toString());
         features = train0.pick(null,null,null,i);
         CenterData(features);
         features = features.reshape(1,120);
@@ -141,7 +182,6 @@ function Train() {
         CenterData(features);
         features = features.reshape(1,120);
         knnClassifier.addExample(features.tolist(), 5);
-        
         
         features = train5.pick(null,null,null,i);
         CenterData(features);
@@ -239,6 +279,12 @@ function CenterData(data) {
 }
 
 function HandleFrame (frame) {
+    if (pauseClick == false){
+        image(pause,0,0,window.innerWidth/16, window.innerHeight/16);
+    }
+    else {
+        image(play,0,0,window.innerWidth/16, window.innerHeight/16);
+    }
     var InteractionBox = frame.interactionBox;
     previousNumHands = currentNumHands;
     if (frame.hands.length == 1) {
@@ -248,11 +294,19 @@ function HandleFrame (frame) {
         
 }
     else if (frame.hands.length == 2) {
-      var hand = frame.hands[0];
-      currentNumHands = 2;
+      console.log('2hands');
+      var hand = frame.hands[0]; 
+      var hand2 = frame.hands[1];
+//          console.log(hand.type);
+//          if (hand.type == 'left') {
       HandleHand(hand, InteractionBox);
-        
-}
+      HandleHand(hand2, InteractionBox);
+//          }
+//          if (hand.type == 'right') {
+//              HandleHand(hand, InteractionBox);
+//          }
+      currentNumHands = 2;
+    }
     else {
       currentNumHands = 0;  
     }
@@ -263,12 +317,13 @@ function HandleHand (hand, InteractionBox) {
     var j = 0;
     for (j = 0 ; j < fingers.length; j++) {
         a = 250;
-        weight = 3;        
+        weight = 3;
+        console.log(hand.type);
         for (i=0;i<4;i++) {
  
             var finger =fingers[j];
             var bone = finger.bones[i];
-            HandleBone(bone, i, j, InteractionBox);
+            HandleBone(bone, i, j, InteractionBox, hand.type);
             a+=-50;
             weight+= -1
             }
@@ -276,189 +331,49 @@ function HandleHand (hand, InteractionBox) {
     }
     }
 
-function HandleBone(bone, boneIndex, fingerIndex, InteractionBox) {
+function HandleBone(bone, boneIndex, fingerIndex, InteractionBox, side) {
     var xb,yb,zb;
     var xt,yt,zt;
     [xb,yb,zb] = bone.prevJoint;
-    normalizedPrevJoint = InteractionBox.normalizePoint(bone.prevJoint, clamp = true);
+    var normalizedPrevJoint = InteractionBox.normalizePoint(bone.prevJoint, clamp = true);
 
 
     [xt,yt,zt] = bone.nextJoint;
-    normalizedNextJoint= InteractionBox.normalizePoint(bone.nextJoint, clamp = true);
-    for (i=0 ; i<3; i++ ) {
-        oneFrameOfData.set(fingerIndex,boneIndex,i, normalizedPrevJoint[i]);
+    var normalizedNextJoint= InteractionBox.normalizePoint(bone.nextJoint, clamp = true);
+    if (side != 'left'){
+        console.log('not left');
+        for (i=0 ; i<3; i++ ) {
+            oneFrameOfData.set(fingerIndex,boneIndex,i, normalizedPrevJoint[i]);
+        }
+        for (i=0 ; i<3 ; i++) {
+            oneFrameOfData.set(fingerIndex,boneIndex,i+3, normalizedNextJoint[i]);
+        }
     }
-    for (i=0 ; i<3 ; i++) {
-        oneFrameOfData.set(fingerIndex,boneIndex,i+3, normalizedNextJoint[i]);
-    }
+
     var canvasXp = window.innerWidth/2 * normalizedPrevJoint[0];
     var canvasYp = window.innerHeight/2 * (1 - normalizedPrevJoint[1]);
     var canvasXn = window.innerWidth/2 * normalizedNextJoint[0];
     var canvasYn = window.innerHeight/2 * (1 - normalizedNextJoint[1]);
-
+    if (side == 'left'){
+        if (canvasXn <= window.innerWidth/16 && canvasYn <= window.innerHeight/16) {
+            if (pauseClick == false) {
+              pauseClick = true;
+            }
+            else {
+                pauseClick = false;
+            }
+    console.log(pauseClick)
+        }
+    }    
     if (currentNumHands>=1){
-        stroke(50+155*(1-m),50+155*m,50, a);
+//        stroke(50+155*(1-m),50+155*m,50, a);
+        stroke(50,50,50, a);
         strokeWeight(weight*10);
         line(canvasXp, canvasYp,canvasXn,canvasYn);
     }
 }   
 
-function DetermineState(frame) {
-    if (frame.hands.length == 1 && HandIsUncentered()) {
-        programState = 1;
-}
-    else if (frame.hands.length == 0) {
-        programState = 0 ;
-}
-    else if (frame.hands.length == 1){
-        programState = 2;
-    }
-}
 
-function HandleState0(frame) {
- //   DrawImageToHelpUserPutTheirHandOverTheDevice();
-    guide.resize(window.innerWidth/2,window.innerHeight/2);
-    image(guide,0,0);
-}
-
-
-function HandleState1(frame) {
-        HandleFrame(frame);
-        HandIsUncentered();
-    if (centeredXMean<0.25) {
-        tooLeft.resize(window.innerWidth/2,window.innerHeight/2);
-        image(tooLeft,window.innerWidth/2,0);
-    }
-    else if (centeredXMean>0.75){
-    tooRight.resize(window.innerWidth/2,window.innerHeight/2);
-    image(tooRight,window.innerWidth/2,0); 
-    }       
-    else if (centeredZMean<0.25) {
-    tooFar.resize(window.innerWidth/2,window.innerHeight/2);
-    image(tooFar,window.innerWidth/2,0); 
-    }
-    else if (centeredZMean>0.75) {
-    tooClose.resize(window.innerWidth/2,window.innerHeight/2);
-    image(tooClose,window.innerWidth/2,0);        
-    }
-    else if (centeredYMean>0.75) {
-    tooHigh.resize(window.innerWidth/2,window.innerHeight/2);
-    image(tooHigh,window.innerWidth/2,0);              
-    }
-}
-
-function DrawLowerRightPanel() {   
-    digit_image = imgs[digitToShow];
-    console.log('diff', diffInSeconds);
-    if (diffInSeconds < imageTime){
-        digit_image.resize(window.innerWidth/2,window.innerHeight/2);
-        image(digit_image, window.innerWidth/2, window.innerHeight/2);    
-    }
-    else if (level == 2) {
-        textAlign(CENTER);
-        textSize(52);
-        text(digitToShow, window.innerWidth*(3/4), window.innerHeight*(3/4));        
-    }
-    else{
-        textAlign(CENTER);
-        textSize(52);
-        text(digitToShow, window.innerWidth*(3/4), window.innerHeight*(3/4)); 
-    }
-    
-}
-
-function DetermineSwitchDigits() {
-    if (TimeToSwitchDigits() && level == 2) {
-        console.log('switchtrue?', TimeToSwitchDigits() && level == 2)
-        SwitchDigits();
-//        showImage = false;
-        timeSinceLastDigitChange = new Date();
-    }
-    
-    else if (TimeToSwitchDigits() && DetermineNextDigit()) {
-        SwitchDigits();
-//        showImage = true;
-        timeSinceLastDigitChange = new Date();
-    }
-    
-}
-
-function TimeToSwitchDigits() {
-    currentTime = new Date();
-    diffInMilliseconds = Math.abs(currentTime - timeSinceLastDigitChange) ;
-    diffInSeconds = diffInMilliseconds/1000;
-    console.log('diff', diffInSeconds);
-//    if (diffInSeconds > imageTime && level > 0) {
-//        showImage = false;
-//    }
-//    else {
-//        showImage = true;
-//    }
-    if (diffInSeconds > switchTime) {
-        return true;
-    }
-    else {
-        return false;  
-    }
-    
-}
-
-function SwitchDigits() { 
-    if (digitToShow<9 && level==2) {
-        if (m > goal){
-            scores[digitToShow] += 1;
-        }
-        digitToShow +=1;
-//        showImage = true;
-        m = 0.3;
-        n = 5;
-    }
-    else if (digitToShow==9 && level==2 ){
-        if (m > goal){
-            scores[digitToShow] += 1;
-        }
-        digitToShow =1;
-//        showImage = true;
-        m = 0.3;
-        n = 5;        
-    }
-    else if (DetermineNextDigit() && digitToShow<9) {
-        scores[digitToShow] += 1;
-        digitToShow +=1;
-//        showImage = true;
-        m = 0.3;
-        n = 5;
-    }
-    else if (DetermineNextDigit() && digitToShow==9 && level == 0) {
-        levelUp = true;
-        scores[digitToShow] += 1;
-//        showImage = true;
-        digitToShow = 1;
-        m = 0.3;
-        n = 5;
-    }
-    else if (DetermineNextDigit() && digitToShow ==9 && level !=0) {
-        scores[digitToShow] += 1;
-        digitToShow = 1;
-//        showImage = true;
-        m = 0.3;
-        n = 5;
-    }
-    
-}
-
-function HandleState2(frame) {
-    if (level == 0) {
-        HandleLevel0(frame);
-    }
-    else if (level == 1) {
-        HandleLevel1(frame);
-    }
-    else if (level == 2) {
-        HandleLevel2(frame);
-    }
-
-}
 
 function HandIsUncentered(){
     xValues = oneFrameOfData.slice([],[],[0,6,3]);
@@ -495,15 +410,232 @@ function HandIsUncentered(){
 
 
 
+
+
+
+function DetermineState(frame) {
+    if (pauseClick == true) {
+        programState = 'paused';
+    }
+    else if (frame.hands.length == 1 && HandIsUncentered()) {
+        programState = 1;
+}
+    else if (frame.hands.length == 0) {
+        programState = 0 ;
+}
+    else if (frame.hands.length > 0){
+        programState = 2;
+    }
+//    else if (frame.hands.length == 2){
+//        programState = 3;
+//    }
+}
+
+function HandleState0(frame) {
+ //   DrawImageToHelpUserPutTheirHandOverTheDevice();
+    guide.resize(window.innerWidth/2,window.innerHeight/2);
+    image(guide,0,0);
+}
+
+function HandlePause(frame) {
+    HandleFrame(frame);
+    textSize(52);
+    text("Paused", window.innerWidth/2, window.innerHeight/4); 
+}
+
+function HandleState1(frame) {
+        HandleFrame(frame);
+        HandIsUncentered();
+    if (centeredXMean<0.25) {
+        tooLeft.resize(window.innerWidth/2,window.innerHeight/2);
+        image(tooLeft,window.innerWidth/2,0);
+    }
+    else if (centeredXMean>0.75){
+    tooRight.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooRight,window.innerWidth/2,0); 
+    }       
+    else if (centeredZMean<0.25) {
+    tooFar.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooFar,window.innerWidth/2,0); 
+    }
+    else if (centeredZMean>0.75) {
+    tooClose.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooClose,window.innerWidth/2,0);        
+    }
+    else if (centeredYMean>0.75) {
+    tooHigh.resize(window.innerWidth/2,window.innerHeight/2);
+    image(tooHigh,window.innerWidth/2,0);              
+    }
+}
+
+function DrawLowerRightPanel() {   
+    digit_image = imgs[digitToShow];
+//    console.log('diff', diffInSeconds);
+    
+    if (level == 3) {
+        questions[digitToShow].resize(window.innerWidth/2,window.innerHeight/2);
+        image(questions[digitToShow] , window.innerWidth/2, window.innerHeight/2);  
+        pics[digitToShow].resize(window.innerWidth/2,window.innerHeight/2);
+        image(pics[digitToShow], window.innerWidth/2, 0);          
+    }
+    else if (diffInSeconds < imageTime){
+        digit_image.resize(window.innerWidth/2,window.innerHeight/2);
+        image(digit_image, window.innerWidth/2, window.innerHeight/2);    
+    }
+    else if (level == 2) {
+        textAlign(CENTER);
+        textSize(52);
+        text(digitToShow, window.innerWidth*(3/4), window.innerHeight*(3/4));        
+    }
+    else{
+        textAlign(CENTER);
+        textSize(52);
+        text(digitToShow, window.innerWidth*(3/4), window.innerHeight*(3/4)); 
+    }
+    
+}
+
+function DetermineSwitchDigits() {
+    if (TimeToSwitchDigits() && level == 2) {
+      //  console.log('switchtrue?', TimeToSwitchDigits() && level == 2)
+        SwitchDigits();
+//        showImage = false;
+        timeSinceLastDigitChange = new Date();
+    }
+    
+    else if (TimeToSwitchDigits() && DetermineNextDigit()) {
+        SwitchDigits();
+//        showImage = true;
+        timeSinceLastDigitChange = new Date();
+    }
+    
+}
+
+function TimeToSwitchDigits() {
+    currentTime = new Date();
+    diffInMilliseconds = Math.abs(currentTime - timeSinceLastDigitChange) ;
+    diffInSeconds = diffInMilliseconds/1000;
+//    console.log('diff', diffInSeconds);
+//    if (diffInSeconds > imageTime && level > 0) {
+//        showImage = false;
+//    }
+//    else {
+//        showImage = true;
+//    }
+    if (diffInSeconds > switchTime) {
+        return true;
+    }
+    else {
+        return false;  
+    }
+    
+}
+
+function SwitchDigits() { 
+    if (digitToShow<9 && level==2) {
+        if (m > goal){
+            scores[digitToShow] += 1;
+        }
+        
+        correct[digitToShow] += 1;
+        attempts[digitToShow] += 1;
+        
+        accuracyList[digitToShow] = correct[digitToShow]/attempts[digitToShow];
+        
+//        accuracyCount[digitToShow] = n;
+//        accuracyList[digitToShow] = m;
+        
+        digitToShow +=1;
+//        showImage = true;
+    
+        m = accuracyList[digitToShow];
+        n = accuracyCount[digitToShow];
+    }
+    else if (digitToShow==9 && level==2 ){
+        if (m > goal){
+            scores[digitToShow] += 1;
+        }
+        correct[digitToShow] += 1;
+        attempts[digitToShow] += 1;
+        
+        accuracyList[digitToShow] = correct[digitToShow]/attempts[digitToShow];
+        
+        
+        digitToShow =1;
+//        showImage = true;
+        m = accuracyList[digitToShow];
+        n = accuracyCount[digitToShow];        
+    }
+    else if (DetermineNextDigit() && digitToShow<9) {
+        scores[digitToShow] += 1;
+        
+        correct[digitToShow] += 1;
+        attempts[digitToShow] += 1;
+        
+        accuracyList[digitToShow] = correct[digitToShow]/attempts[digitToShow];
+        
+        
+        digitToShow +=1;
+//        showImage = true;
+        m = accuracyList[digitToShow];
+        n = accuracyCount[digitToShow];
+    }
+    else if (DetermineNextDigit() && digitToShow==9 && level == 0) {
+        levelUp = true;
+        scores[digitToShow] += 1;
+//        showImage = true;
+        correct[digitToShow] += 1;
+        attempts[digitToShow] += 1;
+        
+        accuracyList[digitToShow] = correct[digitToShow]/attempts[digitToShow];
+        
+        
+        digitToShow = 1;
+        m = accuracyList[digitToShow];
+        n = accuracyCount[digitToShow];
+    }
+    else if (DetermineNextDigit() && digitToShow ==9 && level !=0) {
+        scores[digitToShow] += 1;
+        
+        correct[digitToShow] += 1;
+        attempts[digitToShow] += 1;
+        
+        accuracyList[digitToShow] = correct[digitToShow]/attempts[digitToShow];
+        
+        
+        digitToShow = 1;
+//        showImage = true;
+        m = accuracyList[digitToShow];
+        n = accuracyCount[digitToShow];
+    }
+    
+}
+
+function HandleState2(frame) {
+    if (level == 0) {
+        HandleLevel0(frame);
+    }
+    else if (level == 1) {
+        HandleLevel1(frame);
+    }
+    else if (level == 2) {
+        HandleLevel2(frame);
+    }
+    else if (level == 3) {
+        HandleLevel3(frame);
+    }
+}
+
 function DetermineNextDigit() {
     var performance = m;
-    if (performance > goal) {
+//    if (performance > goal) {
+    if (c == d) {
 //        scores[digitToShow] = scores[digitToShow]+ 1;
         return true;
     }
-    if (performance < 0.1) {
-        n = 10;
-    }
+//    if (performance < 0.1 && n > 50) {
+//        n = 1;
+//    }
     else {
         return false;
     }
@@ -518,7 +650,7 @@ function DetermineNextLevel() {
 }
 
 function DetermineImageTime() {
-    console.log(scores);
+//    console.log(scores);
     if (scores[digitToShow] < 3) {
         return 3 - scores[digitToShow];
     }
@@ -530,7 +662,7 @@ function DetermineImageTime() {
 
 function HandleLevel0(frame) {
     HandleFrame(frame);
-    Test();
+//    Test();
     switchTime = 3;
     DetermineSwitchDigits();
     DetermineNextLevel();
@@ -548,11 +680,11 @@ function Level1Up() {
 
 function HandleLevel1(frame) {
     HandleFrame(frame);
-    Test();
+//    Test();
     goal = 0.5;
     switchTime = 3;
     imageTime = DetermineImageTime();
-    console.log('imgtime', imageTime);
+ //   console.log('imgtime', imageTime);
     DetermineSwitchDigits();
 //    levelUp = Level1Up();
     DetermineNextLevel();
@@ -574,9 +706,9 @@ function HandleLevel2(frame) {
     goal = 0.5;
     showImage = false;
     HandleFrame(frame);
-    Test();
+//    Test();
     switchTime = Level2Time();
-    console.log('switchtime', switchTime );
+//    console.log('switchtime', switchTime);
     DetermineSwitchDigits();
     DetermineNextLevel();
     DrawLowerRightPanel();    
@@ -584,6 +716,20 @@ function HandleLevel2(frame) {
 //function DeterminePrevLevel() {
     
 //}
+function HandleLevel3(frame) {
+    HandleFrame(frame);
+//    Test();
+    goal = 0.5;
+    switchTime = 2;
+//    imageTime = DetermineImageTime();
+//    console.log('imgtime', imageTime);
+    DetermineSwitchDigits();
+//    levelUp = Level1Up();
+    DetermineNextLevel();
+    DrawLowerRightPanel();
+}
+
+
 
 function IsNewUser(username, list) {
     var usernameFound = false;
@@ -619,17 +765,42 @@ function CreateSignInItem(username, list){
 }
 
 function SignIn() {
-    var username = document.getElementById('username').value;
+    username = document.getElementById('username').value;
 //    console.log(username);
+    myPrevData = Array.from(Array(10), () => 0);
+    var ul = document.getElementById("users");
+    var items = ul.getElementsByTagName("li");
+    
+    for (i = 0; i < items.length; ++i) {
+        var item = items[i];
+        spl = item.id.split('_');
+        if (spl[2] == "accuracy" && spl[0] ==username) {
+             myPrevData[spl[1]] = myPrevData[spl[1]] + parseFloat(item.innerHTML);
+           }
+    }
+    console.log(myPrevData);
+    
+
+    
+    
     var list = document.getElementById('users');
     if (IsNewUser(username, list)) {
         CreateNewUser(username, list);
         CreateSignInItem(username,list);
+        var numPast = document.getElementById('num_past_users');
+        numPast.innerHTML = parseInt(numPast.innerHTML)+1;
     }
     else {
+        
+        for (i=0;i<10;i++) {        
+            var pastNum = parseInt(document.getElementById(username+"_signins").innerHTML);
+           // console.log(pastNum);
+            myPrevData[i] = myPrevData[i]/pastNum;
+           }
+        
         ID = String(username + "_signins");
         listItem = document.getElementById(ID);
-        listItem.innerHTML = parseInt(listItem.innerHTML)+1     
+        listItem.innerHTML = parseInt(listItem.innerHTML)+1;     
     }
     for (i=0;i<10;i++) {
         item = document.createElement('li');
@@ -638,31 +809,123 @@ function SignIn() {
         list.appendChild(item); 
         
         item = document.createElement('li');
-        item.innerHTML = 'attempts';
+        item.innerHTML = Math.random();
         item.id = String(username) + '_' + String(i)+'_attempts';
         list.appendChild(item);
         
         item = document.createElement('li');
-        item.innerHTML = 'accuracy';
+        item.innerHTML = Math.random();
         item.id = String(username) + '_' +String(i)+'_accuracy';
         list.appendChild(item); 
     }
-//    console.log(list.innerHTML);
+    console.log(list.innerHTML);
     return false;
 
 }
 
 
+
+function GetPrevData() {
+//    prevDataList = document.getElementById('users');
+//    console.log(prevDataList.innerHTML);
+//    nodeList = document.get
+    barData = Array.from(Array(10), () => 0);
+    var ul = document.getElementById("users");
+    var items = ul.getElementsByTagName("li");
+    for (i = 0; i < items.length; ++i) {
+     //   console.log(items[i].innerHTML, items[i].id);
+        var item = items[i];
+        spl = item.id.split('_');
+        if (spl[2] == "accuracy") {
+            barData[spl[1]] = barData[spl[1]] + parseFloat(item.innerHTML);
+            if (spl[0] == username) {
+                myPrevData[spl[1]] = myPrevData[spl[1]] + parseFloat(item.innerHTML);
+            }
+        }
+    }
+    for (i=0;i<10;i++) {        
+        var pastNum = parseInt(document.getElementById("num_past_users").innerHTML);
+   //     console.log(pastNum);
+        barData[i] = barData[i]/pastNum;
+    }
+    xNums = [];
+    for (i=0;i<10;i++) {
+        xNums[i] = i;
+    }
+    
+}
+
+function PlotData() {
+//    prevDataList = document.getElementById('users');
+//    console.log(prevDataList.innerHTML);
+//    nodeList = document.get
+    
+    var plotStyle = document.getElementById('myDiv').style;
+    plotStyle.position = 'absolute';
+    plotStyle.top = window.innerHeight/2 + 30;
+    plotStyle.height = window.innerHeight/2 -30;
+    plotStyle.width = window.innerWidth/2;
+    
+    var prevUsers = {
+      x: xNums,
+      y: barData,
+      type: "bar",
+      name: 'prev users',
+      opacity: 0.4,
+      marker: {
+         color: 'green',
+      },
+    };
+    var prevData = {
+      x: xNums,
+      y: myPrevData,
+      type: "bar",
+      name: 'my prev',
+      opacity: 0.4,
+      marker: {
+         color: 'blue',
+      },
+    };
+    var myData = {
+      x: xNums,
+      y: accuracyList,
+      name: 'my data',
+      type: "bar",
+      opacity: 0.5,
+      marker: {
+         color: 'red',
+      },
+    };
+//    console.log(myPrevData );
+    var data = [prevUsers, myData, prevData];
+    var layout = {barmode: "group",
+            yaxis: {
+                  title: '% correct', },
+            xaxis: {
+            title: 'digit',
+            showticklabels: true,
+            type: 'category',
+        }
+                 };
+
+    Plotly.newPlot('myDiv', data, layout);
+    
+    
+}
+
 //console.log(programState);
 Leap.loop(controllerOptions, function(frame)
 {
     clear();
-    console.log('level', level);
+//    console.log('level', level);
     if (trainingCompleted == false) {
-        Train();
+        GetPrevData();
+//        Train();
         trainingCompleted = true;
     }
+    PlotData();
     DetermineState(frame);
+    console.log(programState);
     if (programState == 0){
         HandleState0(frame);
     }
@@ -671,6 +934,9 @@ Leap.loop(controllerOptions, function(frame)
     }
     else if (programState ==2 ) {
         HandleState2(frame);
+    }
+    else if (programState == 'paused') {
+        HandlePause(frame);
     }
 //    if (trainingCompleted == false) {
 //        Train();
