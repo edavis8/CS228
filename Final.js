@@ -11,14 +11,14 @@ var predictedLabel;
 var features;
 var currentTestingSample;
 var i = 0;
-var timeLeft;
+var timeLeft=5;
 var rawXmin, rawXmax, rawYmin, rawYmax;
 var previousNumHands=0;
 var features;
 var currentNumHands=0;
 var numSamples = 100 ;
 var oneFrameOfData = nj.zeros([5,4,6]);
-var digitToShow = 6;
+var digitToShow = 0;
 nj.config.printThreshold = 1000;
 rawXmin = -250; rawXmax = 250; rawYmax = 400; rawYmin = 20;
 var m = 0;
@@ -33,6 +33,7 @@ var centeredYMean;
 var centeredZMean;
 var username;
 var hoverCount=0;
+var hoverAnswer = false;
 //var one_score =0; var two_score=0; var three_score=0; var four_score=0; var five_score; var six_score; var seven_score; var eight_score; var nine_score;
 var scores = [];
 var choices;
@@ -297,7 +298,7 @@ function HandleFrame (frame) {
         
 }
     else if (frame.hands.length == 2) {
-      console.log('2hands');
+//      console.log('2hands');
       var hand = frame.hands[0]; 
       var hand2 = frame.hands[1];
 //          console.log(hand.type);
@@ -321,7 +322,7 @@ function HandleHand (hand, InteractionBox) {
     for (j = 0 ; j < fingers.length; j++) {
         a = 250;
         weight = 3;
-        console.log(hand.type);
+//        console.log(hand.type);
         for (i=0;i<4;i++) {
  
             var finger =fingers[j];
@@ -360,8 +361,8 @@ function HandleBone(bone, boneIndex, fingerIndex, InteractionBox, side) {
     if (side == 'left'){
         if (canvasXn <= window.innerWidth/16 && canvasYn <= window.innerHeight/16) {
             hoverCount += 1;
-            console.log('on target');
-            if (pauseClick == false && hoverCount >50) {
+//            console.log('on target');
+            if (pauseClick == false && hoverCount >40) {
               pauseClick = true;
               hoverCount=0;
             }
@@ -369,18 +370,24 @@ function HandleBone(bone, boneIndex, fingerIndex, InteractionBox, side) {
                 pauseClick = false;
                 hoverCount=0;
             }
-
-    console.log(hoverCount);
-    console.log(pauseClick);
         }
-    }    
+        if (programState == 'paused') {
+//            hoverAnswer = false;
+            if (canvasXn <= (window.innerWidth/6 + window.innerWidth/16) && canvasXn >= (window.innerWidth/6 - window.innerWidth/16) && canvasYn <= window.innerHeight/16) {
+                hoverAnswer = true;
+                console.log('target');
+                }
+            console.log(hoverAnswer);
+        }
+    }
+       
     if (currentNumHands>=1){
 //        stroke(50+155*(1-m),50+155*m,50, a);
         stroke(50,50,50, a);
         strokeWeight(weight*10);
         line(canvasXp, canvasYp,canvasXn,canvasYn);
     }
-}   
+}
 
 
 
@@ -442,15 +449,27 @@ function DetermineState(frame) {
 
 function HandleState0(frame) {
  //   DrawImageToHelpUserPutTheirHandOverTheDevice();
+    timeSinceLastDigitChange = new Date();
     guide.resize(window.innerWidth/2,window.innerHeight/2);
     image(guide,0,0);
 }
 
 function HandlePause(frame) {
+    hoverAnswer = false;
+    timeSinceLastDigitChange = new Date();
+    image(getAnswer,window.innerWidth/6,0,window.innerWidth/12, window.innerHeight/12);
     HandleFrame(frame);
     DrawLowerRightPanel();
     textSize(52);
-    text("Paused", window.innerWidth/2, window.innerHeight/4); 
+    text("Paused", window.innerWidth/1.5, window.innerHeight/4);
+    fill(100,100,100);
+    if (hoverAnswer == true) {
+        console.log('got here');
+        digit_image.resize(window.innerWidth/2,window.innerHeight/2);
+        image(digit_image, window.innerWidth/2, window.innerHeight/2); 
+    }
+    
+
 }
 
 function HandleState1(frame) {
@@ -479,6 +498,7 @@ function HandleState1(frame) {
 }
 
 function DrawLowerRightPanel() {   
+    console.log(digitToShow);
     digit_image = imgs[digitToShow];
 //    console.log('diff', diffInSeconds);
     
@@ -487,8 +507,9 @@ function DrawLowerRightPanel() {
         image(questions[digitToShow] , window.innerWidth/2, window.innerHeight/2);  
         pics[digitToShow].resize(window.innerWidth/2,window.innerHeight/2);
         image(pics[digitToShow], window.innerWidth/2, 0);
-        textSize(52);
-        text(timeLeft,window.innerWidth/2, window.innerHeight/4);
+//        textSize(52);
+        time_imgs[timeLeft].resize(window.innerWidth/8,window.innerHeight/8);        
+        image(time_imgs[timeLeft],window.innerWidth/2, window.innerHeight/2);
     }
     else if (diffInSeconds < imageTime){
         digit_image.resize(window.innerWidth/2,window.innerHeight/2);
@@ -504,6 +525,7 @@ function DrawLowerRightPanel() {
         textSize(52);
         text(digitToShow, window.innerWidth*(3/4), window.innerHeight*(3/4)); 
     }
+
     
 }
 
@@ -515,7 +537,7 @@ function DetermineSwitchDigits() {
         timeSinceLastDigitChange = new Date();
     }
 
-    if (TimeToSwitchDigits() && level == 3) {
+    else if ((TimeToSwitchDigits() && level == 3) || (DetermineNextDigit() && level == 3)) {
       //  console.log('switchtrue?', TimeToSwitchDigits() && level == 2)
         SwitchDigits();
 //        showImage = false;
@@ -536,7 +558,10 @@ function TimeToSwitchDigits() {
     diffInMilliseconds = Math.abs(currentTime - timeSinceLastDigitChange);
     diffInSeconds = diffInMilliseconds/1000;
     timeLeft = Math.round(switchTime - diffInSeconds);
-    console.log('time left', timeLeft);
+    if (timeLeft<0){
+        timeLeft=0;
+    }
+//    console.log('time left', timeLeft);
 //    console.log('diff', diffInSeconds);
 //    if (diffInSeconds > imageTime && level > 0) {
 //        showImage = false;
@@ -555,7 +580,7 @@ function TimeToSwitchDigits() {
 
 function SwitchDigits() { 
 
-    if (digitToShow<9 && level==3) {
+    if (digitToShow<10 && level==3) {
         if (DetermineNextDigit()){
             correct[digitToShow] += 1;
         }
@@ -565,15 +590,27 @@ function SwitchDigits() {
         
 //        accuracyCount[digitToShow] = n;
 //        accuracyList[digitToShow] = m;
+//        digitToShow+=1;
+//        if (digitToShow >= 9) {
+//            digitToShow=0;
+//        }
         
-        digitToShow = _.sample(choices);
+        
+        var newDigitToShow = _.sample(choices);
+        while (newDigitToShow == digitToShow) {
+            newDigitToShow = _.sample(choices)
+        }
+        digitToShow = newDigitToShow;
+        console.log(digitToShow);
+        console.log(choices );
+        
 //        showImage = true;
     
         m = accuracyList[digitToShow];
         n = accuracyCount[digitToShow];
     }
     
-    if (digitToShow<9 && level==2) {
+    else if (digitToShow<9 && level==2) {
         if (m > goal){
             scores[digitToShow] += 1;
         }
@@ -760,25 +797,26 @@ function HandleLevel2(frame) {
 
 function Level3Time(accuracy) {
     if (accuracy>=0.8) {
-        return 2
+        return 2;
     }
-    else if (0.7<=accuracy<0.8) {
-        return 3
+    else if (0.7<=accuracy && accuracy<0.8) {
+        return 3;
     }
-    else if (0.6<=accuracy<0.7) {
-        return 4
+    else if (0.6<=accuracy && accuracy<0.7) {
+        return 4;
     }
     else if (accuracy<0.6) {
-        return 5
+        return 5;
     }
 }
 
 function HandleLevel3(frame) {
     HandleFrame(frame);
-//    Test();
+    Test();
     goal = 0.5;
     switchTime = Level3Time(accuracyList[digitToShow]);
-//    imageTime = DetermineImageTime();
+//    console.log('st', switchTime, 'acc', accuracyList[digitToShow], 'res', Level3Time(accuracyList[digitToShow]));
+//    imageTime = DetermineImageTime();;
 //    console.log('imgtime', imageTime);
     DetermineSwitchDigits();
 //    levelUp = Level1Up();
@@ -790,14 +828,15 @@ function HandleLevel3(frame) {
 function CreateChoiceProbability() {
     choices = [];
     dex =0
+    var rep;
     for (i=0;i<10;i++) {
         if (accuracyList[i] >=0.8) {
             rep =1;
         }
-        else if (0.7<=accuracyList[i]<0.8) {
+        else if (0.7<=accuracyList[i] && accuracyList[i]<0.8) {
             rep = 2;
         }
-        else if (0.6<=accuracyList[i]<0.7) {
+        else if (0.6<=accuracyList[i] && accuracyList[i]<0.7) {
             rep =3;
         }
         else if (accuracyList[i]<0.6) {
@@ -857,7 +896,7 @@ function SignIn() {
              myPrevData[spl[1]] = myPrevData[spl[1]] + parseFloat(item.innerHTML);
            }
     }
-    console.log(myPrevData);
+//    console.log(myPrevData);
     
 
     
@@ -897,7 +936,7 @@ function SignIn() {
         item.id = String(username) + '_' +String(i)+'_accuracy';
         list.appendChild(item); 
     }
-    console.log(list.innerHTML);
+//    console.log(list.innerHTML);
     return false;
 
 }
@@ -977,7 +1016,7 @@ function PlotData() {
     var myData = {
       x: xNums,
       y: accuracyList,
-      name: 'my data',
+      name: username+' data',
       type: "bar",
       opacity: 0.5,
       marker: {
@@ -1008,12 +1047,12 @@ Leap.loop(controllerOptions, function(frame)
 //    console.log('level', level);
     if (trainingCompleted == false) {
         GetPrevData();
-//        Train();
+        Train();
         trainingCompleted = true;
     }
     PlotData();
     DetermineState(frame);
-    console.log(programState);
+//    console.log(programState);
     CreateChoiceProbability();
     if (programState == 0){
         HandleState0(frame);

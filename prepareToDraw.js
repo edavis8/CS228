@@ -14,6 +14,8 @@ var dipper_7; var dipper_ans; var dipper;
 var cat_9; var cat_ans; var cat;
 var pause;
 var play;
+var getAnswer;
+var time_imgs =[];
 function setup() {
     createCanvas(window.innerWidth, window.innerHeight);
     guide = loadImage('https://i.imgur.com/IAl57Ej.jpg');
@@ -113,6 +115,14 @@ function setup() {
     imgs[8] = eight_sign;
     imgs[9] = nine_sign;
 
+    time_imgs[0] = loadImage('https://i.imgur.com/uzk8k6T.jpg');
+    time_imgs[1] = loadImage('https://i.imgur.com/PFfWG5k.jpg');
+    time_imgs[2] = loadImage('https://i.imgur.com/6fQQnWh.jpg');
+    time_imgs[3] = loadImage('https://i.imgur.com/5ZnqkFB.jpg');
+    time_imgs[4] = loadImage('https://i.imgur.com/8WvdNYc.jpg');
+    time_imgs[5] = loadImage('https://i.imgur.com/o17iNjN.jpg');
+    
+    getAnswer = loadImage('https://i.imgur.com/2DbvnZt.jpg');
     
 //  img.resize(window.innerWidth,window.innerHeight);
     //  console.log('image loaded');
